@@ -18,15 +18,15 @@ namespace Test.BookTests.CommandTests
         [Test]
         public async Task Handle_BookExists_DeletesBookFromDatabase()
         {
-            // Arrange
+            //Arrange
             var bookToDelete = _fakeDatabase.Books[0];
             var initialBooks = _fakeDatabase.Books.Count;
             var command = new DeleteBookCommand(bookToDelete.Id);
 
-            // Act
+            //Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
-            // Assert
+            //Assert
             Assert.That(result, Is.True); 
             Assert.That(_fakeDatabase.Books.Count, Is.EqualTo(initialBooks - 1)); 
         }
