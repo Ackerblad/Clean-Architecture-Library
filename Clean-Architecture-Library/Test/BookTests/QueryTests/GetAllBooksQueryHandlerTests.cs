@@ -18,13 +18,13 @@ namespace Test.BookTests.QueryTests
         [Test]
         public async Task Handle_ReturnsAllBooks()
         {
-            // Arrange
+            //Arrange
             var query = new GetAllBooksQuery();
 
-            // Act
+            //Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
-            // Assert
+            //Assert
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Count, Is.EqualTo(_fakeDatabase.Books.Count));
         }
