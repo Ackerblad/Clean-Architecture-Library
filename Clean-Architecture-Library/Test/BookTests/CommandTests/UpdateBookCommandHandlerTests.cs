@@ -3,7 +3,7 @@ using Infrastructure;
 
 namespace Test.BookTests.CommandTests
 {
-    public class UpdateBookCommandHandlerTest
+    public class UpdateBookCommandHandlerTests
     {
         private FakeDatabase _fakeDatabase;
         private UpdateBookCommandHandler _handler;

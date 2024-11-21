@@ -20,14 +20,14 @@ namespace Test.AuthorTests.CommandTests
         {
             //Arrange
             var initialAuthors = _fakeDatabase.Authors.Count;
-            var command = new CreateAuthorCommand("NewAuthor", "NewAuthor");
+            var command = new CreateAuthorCommand("New", "Author");
 
             //Act
             var createdAuthor = await _handler.Handle(command, CancellationToken.None);
 
             //Assert
-            Assert.That(createdAuthor.FirstName, Is.EqualTo("NewAuthor"));
-            Assert.That(createdAuthor.LastName, Is.EqualTo("NewAuthor"));
+            Assert.That(createdAuthor.FirstName, Is.EqualTo("New"));
+            Assert.That(createdAuthor.LastName, Is.EqualTo("Author"));
             Assert.That(_fakeDatabase.Authors.Count, Is.EqualTo(initialAuthors + 1));
         }
 
