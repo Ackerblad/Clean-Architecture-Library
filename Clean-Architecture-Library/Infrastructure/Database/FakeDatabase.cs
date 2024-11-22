@@ -21,7 +21,9 @@ namespace Infrastructure
         {
             new Author(1, "Neil", "Gaiman"),
             new Author(2, "Agatha", "Christie"),
-            new Author(3, "George", "Orwell")
+            new Author(3, "George", "Orwell"),
+            new Author(4, "Mark", "Twain"),
+            new Author(5, "Ernest", "Hemingway")
         };
     }
 }
