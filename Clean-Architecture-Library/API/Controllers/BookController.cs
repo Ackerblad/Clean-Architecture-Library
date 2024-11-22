@@ -24,8 +24,8 @@ namespace API.Controllers
         {
             try
             {
-                var result = await _mediator.Send(new GetAllBooksQuery());
-                return Ok(result);
+                var books = await _mediator.Send(new GetAllBooksQuery());
+                return Ok(books);
             }
             catch (Exception ex)
             {
@@ -38,8 +38,8 @@ namespace API.Controllers
         {
             try
             {
-                var result = await _mediator.Send(new GetBookByIdQuery(id));
-                return Ok(result);
+                var book = await _mediator.Send(new GetBookByIdQuery(id));
+                return Ok(book);
             }
             catch (Exception ex)
             {
@@ -48,12 +48,12 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateBook([FromBody] CreateBookCommand newBook)
+        public async Task<IActionResult> CreateBook([FromBody] CreateBookCommand command)
         {
             try
             {
-                var result = await _mediator.Send(newBook);
-                return Ok(newBook);
+                var createdBook = await _mediator.Send(command);
+                return Ok(createdBook);
             }
             catch (Exception ex)
             {
@@ -63,12 +63,17 @@ namespace API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBook(int id, [FromBody] UpdateBookCommand updatedBook)
+        public async Task<IActionResult> UpdateBook(int id, [FromBody] UpdateBookCommand command)
         {
             try
             {
-                var result = await _mediator.Send(updatedBook);
-                return Ok(result);
+                if (id != command.Id)
+                {
+                    return BadRequest("ID in the URL does not match the ID in the body.");
+                }
+
+                var updatedBook = await _mediator.Send(command);
+                return Ok(updatedBook);
             }
             catch (Exception ex)
             {
