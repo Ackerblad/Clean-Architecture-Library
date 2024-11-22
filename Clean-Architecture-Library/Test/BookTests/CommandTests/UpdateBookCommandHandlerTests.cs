@@ -32,7 +32,7 @@ namespace Test.BookTests.CommandTests
         }
 
         [Test]
-        public async Task Handle_BookDoesNotExist_ThrowsKeyNotFoundException()
+        public void Handle_BookDoesNotExist_ThrowsKeyNotFoundException()
         {
             //Arrange
             var command = new UpdateBookCommand(99, "UpdatedTitle", "UpdatedDescription", 1);
