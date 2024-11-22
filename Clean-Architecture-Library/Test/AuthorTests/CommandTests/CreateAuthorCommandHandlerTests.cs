@@ -32,7 +32,7 @@ namespace Test.AuthorTests.CommandTests
         }
 
         [Test]
-        public async Task Handle_AuthorAlreadyExists_ThrowsInvalidOperationException()
+        public void Handle_AuthorAlreadyExists_ThrowsInvalidOperationException()
         {
             //Arrange
             var initialAuthors = _fakeDatabase.Authors.Count;

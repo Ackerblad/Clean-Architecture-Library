@@ -31,7 +31,7 @@ namespace Test.AuthorTests.CommandTests
         }
 
         [Test]
-        public async Task Handle_AuthorDoesNotExist_ThrowsKeyNotFoundException()
+        public void Handle_AuthorDoesNotExist_ThrowsKeyNotFoundException()
         {
             //Arrange
             var command = new UpdateAuthorCommand(99, "Updated", "Author");
