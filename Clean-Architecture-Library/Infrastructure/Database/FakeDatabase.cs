@@ -6,6 +6,7 @@ namespace Infrastructure
     {
         public List<Book> Books { get { return booksInDb; } set { booksInDb = value; } }
         public List<Author> Authors { get { return authorsInDb; } set { authorsInDb = value; } }
+        public List<User> Users { get { return usersInDb; } set { usersInDb = value; } }
 
         private static List<Book> booksInDb = new()
         {
@@ -24,6 +25,13 @@ namespace Infrastructure
             new Author(3, "George", "Orwell"),
             new Author(4, "Mark", "Twain"),
             new Author(5, "Ernest", "Hemingway")
+        };
+
+        private static List<User> usersInDb = new()
+        {
+            new User(1, "JohnDoe", "HashedPassword123"),
+            new User(2, "JaneDoe", "HashedPassword456"),
+            new User(3, "Admin", "HashedPassword789")
         };
     }
 }
