@@ -1,7 +1,7 @@
-﻿using Domain.Entities;
-using MediatR;
+﻿//using Domain.Entities;
+//using MediatR;
 
-namespace Application.Queries.Authors.GetAllAuthors
-{
-    public class GetAllAuthorsQuery : IRequest<List<Author>> { }
-}
+//namespace Application.Queries.Authors.GetAllAuthors
+//{
+//    public class GetAllAuthorsQuery : IRequest<List<Author>> { }
+//}

@@ -1,7 +1,7 @@
-﻿using Domain.Entities;
-using MediatR;
+﻿//using Domain.Entities;
+//using MediatR;
 
-namespace Application.Queries.Books.GetAllBooks
-{
-    public class GetAllBooksQuery : IRequest<List<Book>> { }
-}
+//namespace Application.Queries.Books.GetAllBooks
+//{
+//    public class GetAllBooksQuery : IRequest<List<Book>> { }
+//}

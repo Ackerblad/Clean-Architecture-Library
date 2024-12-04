@@ -1,14 +1,14 @@
-﻿using MediatR;
+﻿//using MediatR;
 
-namespace Application.Commands.Authors.DeleteAuthor
-{
-    public class DeleteAuthorCommand : IRequest<bool>
-    {
-        public int Id { get; set; }
+//namespace Application.Commands.Authors.DeleteAuthor
+//{
+//    public class DeleteAuthorCommand : IRequest<bool>
+//    {
+//        public int Id { get; set; }
 
-        public DeleteAuthorCommand(int id)
-        {
-            Id = id;
-        }
-    }
-}
+//        public DeleteAuthorCommand(int id)
+//        {
+//            Id = id;
+//        }
+//    }
+//}

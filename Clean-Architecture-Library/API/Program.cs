@@ -14,6 +14,7 @@ namespace API
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Configuration.AddUserSecrets<Program>();
 
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
             byte[] secretKey = Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]!);
@@ -35,27 +36,27 @@ namespace API
                 };
             });
 
-            builder.Services.AddAuthorization(options => 
+            builder.Services.AddAuthorization(options =>
             {
-                options.AddPolicy("Admin", policy => 
+                options.AddPolicy("Admin", policy =>
                 {
                     policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
                     policy.RequireAuthenticatedUser();
                 });
             });
 
-            builder.Services.AddSwaggerGen(c => 
+            builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Title", Version = "v1" });
 
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme 
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "Authorize with your bearer token that generates when you login",
                     Type = SecuritySchemeType.Http,
                     Scheme = "bearer"
                 });
 
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement 
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
                         new OpenApiSecurityScheme
@@ -76,7 +77,8 @@ namespace API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddApplication().AddInfrastructure();
+            builder.Services.AddApplication();
+            builder.Services.AddInfrastructure(builder.Configuration);
 
             var app = builder.Build();
 
