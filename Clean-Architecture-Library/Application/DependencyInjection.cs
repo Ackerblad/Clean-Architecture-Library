@@ -1,4 +1,5 @@
 ﻿using Application.Queries.Users.LoginUser.Helpers;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application
@@ -11,6 +12,9 @@ namespace Application
 
             services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(assembly));
             services.AddScoped<TokenHelper>();
+            services.AddValidatorsFromAssembly(assembly);
+            services.AddAutoMapper(assembly);
+            services.AddLogging();
 
             return services;
         }
