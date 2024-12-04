@@ -11,7 +11,7 @@ namespace Infrastructure
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            services.AddDbContext<CleanArchitectureLibrary>(options =>
+            services.AddDbContext<CleanArchitectureLibraryDb>(options =>
             {
                 options.UseSqlServer(connectionString);
             });
