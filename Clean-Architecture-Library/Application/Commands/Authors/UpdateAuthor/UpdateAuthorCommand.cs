@@ -1,19 +1,18 @@
-﻿//using Domain.Entities;
-//using MediatR;
+﻿using Application.DTOs.AuthorDtos;
+using Domain.Results;
+using MediatR;
 
-//namespace Application.Commands.Authors.UpdateAuthor
-//{
-//    public class UpdateAuthorCommand : IRequest<Author>
-//    {
-//        public int Id { get; set; }
-//        public string? Firstname { get; set; }
-//        public string? Lastname { get; set; }
+namespace Application.Commands.Authors.UpdateAuthor
+{
+    public class UpdateAuthorCommand : IRequest<OperationResult<AuthorDto>>
+    {
+        public Guid AuthorId { get; set; }
+        public UpdateAuthorDto UpdatedAuthor { get; set; }
 
-//        public UpdateAuthorCommand(int id, string? firstname, string? lastname)
-//        {
-//            Id = id;
-//            Firstname = firstname;
-//            Lastname = lastname;
-//        }
-//    }
-//}
+        public UpdateAuthorCommand(Guid authorId, UpdateAuthorDto updatedAuthor)
+        {
+            AuthorId = authorId;
+            UpdatedAuthor = updatedAuthor;
+        }
+    }
+}

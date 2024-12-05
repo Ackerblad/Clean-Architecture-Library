@@ -62,9 +62,6 @@ namespace Test.BookTests.CommandTests
             _mockAuthorRepository.Setup(repo => repo.GetByIdAsync(updateBookDto.AuthorId))
                                  .ReturnsAsync(author);
 
-            _mockMapper.Setup(mapper => mapper.Map(updateBookDto, existingBook))
-                        .Returns(existingBook);
-
             _mockMapper.Setup(mapper => mapper.Map<BookDto>(existingBook))
                        .Returns(updatedBookDto);
 
