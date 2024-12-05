@@ -10,6 +10,7 @@ namespace Application.MappingProfiles
         {
             CreateMap<Author, AuthorDto>();
             CreateMap<CreateAuthorDto, Author>();
+            CreateMap<UpdateAuthorDto, Author>();
         }
     }
 }

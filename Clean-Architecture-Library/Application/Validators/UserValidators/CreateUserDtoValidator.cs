@@ -1,7 +1,7 @@
 ﻿using Application.DTOs.UserDtos;
 using FluentValidation;
 
-namespace Application.Validators
+namespace Application.Validators.UserValidators
 {
     public class CreateUserDtoValidator : AbstractValidator<CreateUserDto>
     {
