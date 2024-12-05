@@ -131,9 +131,8 @@ namespace Test.BookTests.CommandTests
 
             var validationErrors = new[] { new ValidationFailure("Title", "Title is required.") };
 
-            _mockValidator
-                .Setup(validator => validator.ValidateAsync(updateBookDto, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult(validationErrors));
+            _mockValidator.Setup(validator => validator.ValidateAsync(updateBookDto, It.IsAny<CancellationToken>()))
+                          .ReturnsAsync(new ValidationResult(validationErrors));
 
             //Act
             var result = await _handler.Handle(command, CancellationToken.None);

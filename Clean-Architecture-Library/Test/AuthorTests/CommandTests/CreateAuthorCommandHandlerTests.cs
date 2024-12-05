@@ -1,50 +1,85 @@
-﻿//using Application.Commands.Authors.CreateAuthor;
-//using Infrastructure;
+﻿using Application.Commands.Authors.CreateAuthor;
+using Application.DTOs.AuthorDtos;
+using Application.Interfaces.RepositoryInterfaces;
+using AutoMapper;
+using Domain.Entities;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.Logging;
+using Moq;
 
-//namespace Test.AuthorTests.CommandTests
-//{
-//    public class CreateAuthorCommandHandlerTests
-//    {
-//        private FakeDatabase _fakeDatabase;
-//        private CreateAuthorCommandHandler _handler;
+namespace Test.AuthorTests.CommandTests
+{
+    public class CreateAuthorCommandHandlerTests
+    {
+        private Mock<ICommandRepository<Author>> _mockAuthorRepository;
+        private Mock<IValidator<CreateAuthorDto>> _mockValidator;
+        private Mock<IMapper> _mockMapper;
+        private Mock<ILogger<CreateAuthorCommandHandler>> _mockLogger;
+        private CreateAuthorCommandHandler _handler;
 
-//        [SetUp]
-//        public void SetUp()
-//        {
-//            _fakeDatabase = new FakeDatabase();
-//            _handler = new CreateAuthorCommandHandler(_fakeDatabase);
-//        }
+        [SetUp]
+        public void SetUp()
+        {
+            _mockAuthorRepository = new Mock<ICommandRepository<Author>>();
+            _mockValidator = new Mock<IValidator<CreateAuthorDto>>();
+            _mockMapper = new Mock<IMapper>();
+            _mockLogger = new Mock<ILogger<CreateAuthorCommandHandler>>();
 
-//        [Test]
-//        public async Task Handle_AuthorIsUnique_AddsAuthorToDatabase()
-//        {
-//            //Arrange
-//            var initialAuthors = _fakeDatabase.Authors.Count;
-//            var command = new CreateAuthorCommand("New", "Author");
+            _handler = new CreateAuthorCommandHandler(
+                _mockAuthorRepository.Object,
+                _mockValidator.Object,
+                _mockMapper.Object,
+                _mockLogger.Object
+                );
+        }
 
-//            //Act
-//            var createdAuthor = await _handler.Handle(command, CancellationToken.None);
+        [Test]
+        public async Task Handle_ValidDto_ReturnsSuccessOperationResult()
+        {
+            //Arrange
+            var newAuthorDto = new CreateAuthorDto { FirstName = "John", LastName = "Doe" };
+            var command = new CreateAuthorCommand(newAuthorDto);
+            var authorEntity = new Author();
+            var authorDto = new AuthorDto { Id = authorEntity.Id, FirstName = "John", LastName = "Doe" };
 
-//            //Assert
-//            Assert.That(createdAuthor.FirstName, Is.EqualTo("New"));
-//            Assert.That(createdAuthor.LastName, Is.EqualTo("Author"));
-//            Assert.That(_fakeDatabase.Authors.Count, Is.EqualTo(initialAuthors + 1));
-//        }
+            _mockValidator.Setup(validator => validator.ValidateAsync(newAuthorDto, It.IsAny<CancellationToken>()))
+                          .ReturnsAsync(new ValidationResult());
 
-//        [Test]
-//        public void Handle_AuthorAlreadyExists_ThrowsInvalidOperationException()
-//        {
-//            //Arrange
-//            var initialAuthors = _fakeDatabase.Authors.Count;
-//            var existingAuthor = _fakeDatabase.Authors[0];
-//            var command = new CreateAuthorCommand(existingAuthor.FirstName, existingAuthor.LastName);
+            _mockMapper.Setup(mapper => mapper.Map<Author>(newAuthorDto))
+                       .Returns(authorEntity);
 
-//            //Act
-//            Task action() => _handler.Handle(command, CancellationToken.None);
+            _mockMapper.Setup(mapper => mapper.Map<AuthorDto>(authorEntity))
+                       .Returns(authorDto);
 
-//            //Assert
-//            Assert.ThrowsAsync<InvalidOperationException>(action);
-//            Assert.That(_fakeDatabase.Authors.Count, Is.EqualTo(initialAuthors));
-//        }
-//    }
-//}
+            //Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            //Assert
+            Assert.IsTrue(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Author created successfully."));
+            _mockAuthorRepository.Verify(repo => repo.CreateAsync(authorEntity), Times.Once);
+        }
+
+        [Test]
+        public async Task Handle_InvalidDto_ReturnsFailureOperationResult()
+        {
+            //Arrange
+            var newAuthorDto = new CreateAuthorDto { FirstName = "", LastName = "Doe" };
+            var command = new CreateAuthorCommand(newAuthorDto);
+            var validationFailures = new[] { new ValidationFailure("FirstName", "First name is required.") };
+
+            _mockValidator.Setup(validator => validator.ValidateAsync(newAuthorDto, It.IsAny<CancellationToken>()))
+                          .ReturnsAsync(new ValidationResult(validationFailures));
+
+            //Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            //Assert
+            Assert.IsFalse(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Validation failed."));
+            Assert.That(result.ErrorMessage, Is.EqualTo("First name is required."));
+            _mockAuthorRepository.Verify(repo => repo.CreateAsync(It.IsAny<Author>()), Times.Never);
+        }
+    }
+}

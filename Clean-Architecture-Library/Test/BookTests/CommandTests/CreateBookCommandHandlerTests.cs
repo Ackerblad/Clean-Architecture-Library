@@ -46,21 +46,17 @@ namespace Test.BookTests.CommandTests
             var bookEntity = new Book();
             var bookDto = new BookDto { Title = "Test Book" };
 
-            _mockValidator
-                .Setup(validator => validator.ValidateAsync(newBookDto, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult());
+            _mockValidator.Setup(validator => validator.ValidateAsync(newBookDto, It.IsAny<CancellationToken>()))
+                          .ReturnsAsync(new ValidationResult());
 
-            _mockAuthorRepository
-                .Setup(repo => repo.GetByIdAsync(newBookDto.AuthorId))
-                .ReturnsAsync(new Author());
+            _mockAuthorRepository.Setup(repo => repo.GetByIdAsync(newBookDto.AuthorId))
+                                 .ReturnsAsync(new Author());
 
-            _mockMapper
-                .Setup(mapper => mapper.Map<Book>(newBookDto))
-                .Returns(bookEntity);
+            _mockMapper.Setup(mapper => mapper.Map<Book>(newBookDto))
+                       .Returns(bookEntity);
 
-            _mockMapper
-                .Setup(mapper => mapper.Map<BookDto>(bookEntity))
-                .Returns(bookDto);
+            _mockMapper.Setup(mapper => mapper.Map<BookDto>(bookEntity))
+                       .Returns(bookDto);
 
             //Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -78,9 +74,8 @@ namespace Test.BookTests.CommandTests
             var newBookDto = new CreateBookDto { Title = "Test Book", AuthorId = Guid.NewGuid() };
             var command = new CreateBookCommand(newBookDto);
 
-            _mockValidator
-                .Setup(validator => validator.ValidateAsync(newBookDto, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult());
+            _mockValidator.Setup(validator => validator.ValidateAsync(newBookDto, It.IsAny<CancellationToken>()))
+                          .ReturnsAsync(new ValidationResult());
 
             //Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -99,9 +94,8 @@ namespace Test.BookTests.CommandTests
             var command = new CreateBookCommand(newBookDto);
             var validationErrors = new[] { new ValidationFailure("Title", "Title is required.") };
 
-            _mockValidator
-                .Setup(validator => validator.ValidateAsync(newBookDto, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult(validationErrors));
+            _mockValidator.Setup(validator => validator.ValidateAsync(newBookDto, It.IsAny<CancellationToken>()))
+                          .ReturnsAsync(new ValidationResult(validationErrors));
 
             //Act
             var result = await _handler.Handle(command, CancellationToken.None);
