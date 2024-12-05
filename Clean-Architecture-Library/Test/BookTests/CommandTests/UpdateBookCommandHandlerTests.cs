@@ -1,63 +1,148 @@
-﻿//using Application.Commands.Books.UpdateBook;
-//using Infrastructure;
+﻿using Application.Commands.Books.UpdateBook;
+using Application.DTOs.BookDtos;
+using Application.Interfaces.RepositoryInterfaces;
+using AutoMapper;
+using Domain.Entities;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.Logging;
+using Moq;
 
-//namespace Test.BookTests.CommandTests
-//{
-//    public class UpdateBookCommandHandlerTests
-//    {
-//        private FakeDatabase _fakeDatabase;
-//        private UpdateBookCommandHandler _handler;
+namespace Test.BookTests.CommandTests
+{
+    public class UpdateBookCommandHandlerTests
+    {
+        private Mock<ICommandRepository<Book>> _mockCommandRepository;
+        private Mock<IQueryRepository<Book>> _mockQueryRepository;
+        private Mock<IQueryRepository<Author>> _mockAuthorRepository;
+        private Mock<IValidator<UpdateBookDto>> _mockValidator;
+        private Mock<IMapper> _mockMapper;
+        private Mock<ILogger<UpdateBookCommandHandler>> _mockLogger;
+        private UpdateBookCommandHandler _handler;
 
-//        [SetUp]
-//        public void SetUp()
-//        {
-//            _fakeDatabase = new FakeDatabase();
-//            _handler = new UpdateBookCommandHandler(_fakeDatabase);
-//        }
 
-//        [Test]
-//        public async Task Handle_BookExists_UpdatesBook()
-//        {
-//            //Arrange
-//            var existingBook = _fakeDatabase.Books[0];
-//            var command = new UpdateBookCommand(existingBook.Id, "UpdatedTitle", "UpdatedDescription", 1);
+        [SetUp]
+        public void SetUp()
+        {
+            _mockCommandRepository = new Mock<ICommandRepository<Book>>();
+            _mockQueryRepository = new Mock<IQueryRepository<Book>>();
+            _mockAuthorRepository = new Mock<IQueryRepository<Author>>();
+            _mockValidator = new Mock<IValidator<UpdateBookDto>>();
+            _mockMapper = new Mock<IMapper>();
+            _mockLogger = new Mock<ILogger<UpdateBookCommandHandler>>();
 
-//            //Act
-//            var updatedBook = await _handler.Handle(command, CancellationToken.None);
+            _handler = new UpdateBookCommandHandler(
+                _mockCommandRepository.Object,
+                _mockQueryRepository.Object,
+                _mockAuthorRepository.Object,
+                _mockValidator.Object,
+                _mockMapper.Object,
+                _mockLogger.Object
+                );
+        }
 
-//            //Assert
-//            Assert.That(updatedBook.Title, Is.EqualTo("UpdatedTitle"));
-//            Assert.That(updatedBook.Description, Is.EqualTo("UpdatedDescription"));
-//            Assert.That(updatedBook.AuthorId, Is.EqualTo(1));
-//        }
+        [Test]
+        public async Task Handle_BookExists_ReturnsSuccessOperationResult()
+        {
+            //Arrange
+            var bookId = Guid.NewGuid();
+            var updateBookDto = new UpdateBookDto { Title = "Updated Title", Description = "Updated Description", AuthorId = Guid.NewGuid() };
+            var command = new UpdateBookCommand(bookId, updateBookDto);
 
-//        [Test]
-//        public void Handle_BookDoesNotExist_ThrowsKeyNotFoundException()
-//        {
-//            //Arrange
-//            var command = new UpdateBookCommand(99, "UpdatedTitle", "UpdatedDescription", 1);
+            var existingBook = new Book { Id = bookId };
+            var author = new Author { Id = updateBookDto.AuthorId };
+            var updatedBookDto = new BookDto { Id = bookId, Title = "Updated Title", Description = "Updated Description", AuthorId = updateBookDto.AuthorId };
 
-//            //Act
-//            Task action() => _handler.Handle(command, CancellationToken.None);
+            _mockValidator.Setup(validator => validator.ValidateAsync(updateBookDto, It.IsAny<CancellationToken>()))
+                          .ReturnsAsync(new ValidationResult());
 
-//            //Assert
-//            Assert.ThrowsAsync<KeyNotFoundException>(action);
-//            Assert.That(_fakeDatabase.Books.Any(b => b.Id == 99), Is.False);
-//        }
+            _mockQueryRepository.Setup(repo => repo.GetByIdAsync(bookId))
+                                .ReturnsAsync(existingBook);
 
-//        [Test]
-//        public void Handle_InvalidAuthorId_ThrowsKeyNotFoundException()
-//        {
-//            //Arrange
-//            var existingBook = _fakeDatabase.Books[0];
-//            var command = new UpdateBookCommand(existingBook.Id, "UpdatedTitle", "UpdatedDescription", 99);
+            _mockAuthorRepository.Setup(repo => repo.GetByIdAsync(updateBookDto.AuthorId))
+                                 .ReturnsAsync(author);
 
-//            //Act
-//            Task action() => _handler.Handle(command, CancellationToken.None);
+            _mockMapper.Setup(mapper => mapper.Map(updateBookDto, existingBook))
+                        .Returns(existingBook);
 
-//            //Assert
-//            Assert.ThrowsAsync<KeyNotFoundException>(action);
-//            Assert.That(_fakeDatabase.Books.Any(b => b.AuthorId == 99), Is.False);
-//        }
-//    }
-//}
+            _mockMapper.Setup(mapper => mapper.Map<BookDto>(existingBook))
+                       .Returns(updatedBookDto);
+
+            //Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            //Assert
+            Assert.IsTrue(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Book updated successfully."));
+            _mockCommandRepository.Verify(repo => repo.UpdateAsync(existingBook), Times.Once);
+        }
+
+        [Test]
+        public async Task Handle_BookDoesNotExist_ReturnsFailureOperationResult()
+        {
+            //Arrange
+            var bookId = Guid.NewGuid();
+            var updateBookDto = new UpdateBookDto { Title = "Updated Title", Description = "Updated Description", AuthorId = Guid.NewGuid() };
+            var command = new UpdateBookCommand(bookId, updateBookDto);
+
+            _mockValidator.Setup(validator => validator.ValidateAsync(updateBookDto, It.IsAny<CancellationToken>()))
+                          .ReturnsAsync(new ValidationResult());
+
+            //Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            //Assert
+            Assert.IsFalse(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Error: Book not found."));
+            _mockCommandRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Book>()), Times.Never);
+        }
+
+        [Test]
+        public async Task Handle_AuthorDoesNotExist_ReturnsFailureOperationResult()
+        {
+            //Arrange
+            var bookId = Guid.NewGuid();
+            var updateBookDto = new UpdateBookDto { Title = "Updated Title", Description = "Updated Description", AuthorId = Guid.NewGuid() };
+            var command = new UpdateBookCommand(bookId, updateBookDto);
+            var existingBook = new Book { Id = bookId };
+
+            _mockQueryRepository.Setup(repo => repo.GetByIdAsync(bookId))
+                                .ReturnsAsync(existingBook);
+
+            _mockValidator.Setup(validator => validator.ValidateAsync(updateBookDto, It.IsAny<CancellationToken>()))
+                          .ReturnsAsync(new ValidationResult());
+
+            //Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            //Assert
+            Assert.IsFalse(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Error: Author not found."));
+            _mockCommandRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Book>()), Times.Never);
+        }
+
+        [Test]
+        public async Task Handle_InvalidDto_ReturnsFailureOperationResult()
+        {
+            //Arrange
+            var bookId = Guid.NewGuid();
+            var updateBookDto = new UpdateBookDto { Title = "", Description = "Updated Description", AuthorId = Guid.NewGuid() };
+            var command = new UpdateBookCommand(bookId, updateBookDto);
+
+            var validationErrors = new[] { new ValidationFailure("Title", "Title is required.") };
+
+            _mockValidator
+                .Setup(validator => validator.ValidateAsync(updateBookDto, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult(validationErrors));
+
+            //Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            //Assert
+            Assert.IsFalse(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Validation failed."));
+            Assert.That(result.ErrorMessage, Is.EqualTo("Title is required."));
+            _mockCommandRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Book>()), Times.Never);
+        }
+    }
+}
