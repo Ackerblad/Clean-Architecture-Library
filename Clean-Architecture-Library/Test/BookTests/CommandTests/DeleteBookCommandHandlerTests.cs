@@ -1,49 +1,70 @@
-﻿//using Application.Commands.Books.DeleteBook;
-//using Infrastructure;
+﻿using Application.Commands.Books.DeleteBook;
+using Application.Interfaces.RepositoryInterfaces;
+using Domain.Entities;
+using Microsoft.Extensions.Logging;
+using Moq;
 
-//namespace Test.BookTests.CommandTests
-//{
-//    public class DeleteBookCommandHandlerTests
-//    {
-//        private FakeDatabase _fakeDatabase;
-//        private DeleteBookCommandHandler _handler;
+namespace Test.BookTests.CommandTests
+{
+    public class DeleteBookCommandHandlerTests
+    {
+        private Mock<ICommandRepository<Book>> _mockCommandRepository;
+        private Mock<IQueryRepository<Book>> _mockQueryRepository;
+        private Mock<ILogger<DeleteBookCommandHandler>> _mockLogger;
+        private DeleteBookCommandHandler _handler;
 
-//        [SetUp]
-//        public void SetUp()
-//        {
-//            _fakeDatabase = new FakeDatabase();
-//            _handler = new DeleteBookCommandHandler(_fakeDatabase);
-//        }
+        [SetUp]
+        public void SetUp()
+        {
+            _mockCommandRepository = new Mock<ICommandRepository<Book>>();
+            _mockQueryRepository = new Mock<IQueryRepository<Book>>();
+            _mockLogger = new Mock<ILogger<DeleteBookCommandHandler>>();
 
-//        [Test]
-//        public async Task Handle_BookExists_DeletesBookFromDatabase()
-//        {
-//            //Arrange
-//            var bookToDelete = _fakeDatabase.Books[0];
-//            var initialBooks = _fakeDatabase.Books.Count;
-//            var command = new DeleteBookCommand(bookToDelete.Id);
+            _handler = new DeleteBookCommandHandler(
+                _mockCommandRepository.Object,
+                _mockQueryRepository.Object,
+                _mockLogger.Object
+            );
+        }
 
-//            //Act
-//            var result = await _handler.Handle(command, CancellationToken.None);
+        [Test]
+        public async Task Handle_BookExists_ReturnsSuccessOperationResult()
+        {
+            //Arrange
+            var bookId = Guid.NewGuid();
+            var command = new DeleteBookCommand(bookId);
 
-//            //Assert
-//            Assert.That(result, Is.True); 
-//            Assert.That(_fakeDatabase.Books.Count, Is.EqualTo(initialBooks - 1)); 
-//        }
+            _mockQueryRepository
+                .Setup(repo => repo.GetByIdAsync(bookId))
+                .ReturnsAsync(new Book { Id = bookId });
 
-//        [Test]
-//        public void Handle_BookDoesNotExist_ThrowsKeyNotFoundException()
-//        {
-//            //Arrange
-//            var initialBooks = _fakeDatabase.Books.Count;
-//            var command = new DeleteBookCommand(99);
+            _mockCommandRepository
+                .Setup(repo => repo.DeleteAsync(bookId))
+                .ReturnsAsync(true);
 
-//            //Act
-//            Task action() => _handler.Handle(command, CancellationToken.None);
+            //Act
+            var result = await _handler.Handle(command, CancellationToken.None);
 
-//            //Assert
-//            Assert.ThrowsAsync<KeyNotFoundException>(action);
-//            Assert.That(_fakeDatabase.Books.Count, Is.EqualTo(initialBooks));
-//        }
-//    }
-//}
+            //Assert
+            Assert.IsTrue(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Book deleted successfully."));
+            _mockCommandRepository.Verify(repo => repo.DeleteAsync(bookId), Times.Once);
+        }
+
+        [Test]
+        public async Task Handle_BookDoesNotExist_ReturnsFailureOperationResult()
+        {
+            //Arrange
+            var bookId = Guid.NewGuid();
+            var command = new DeleteBookCommand(bookId);
+
+            //Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            //Assert
+            Assert.IsFalse(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Error: Book not found."));
+            _mockCommandRepository.Verify(repo => repo.DeleteAsync(It.IsAny<Guid>()), Times.Never);
+        }
+    }
+}
