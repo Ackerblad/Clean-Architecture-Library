@@ -14,7 +14,6 @@ namespace Application
             services.AddScoped<TokenHelper>();
             services.AddValidatorsFromAssembly(assembly);
             services.AddAutoMapper(assembly);
-            services.AddLogging();
 
             return services;
         }
