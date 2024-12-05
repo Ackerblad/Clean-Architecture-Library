@@ -1,14 +1,15 @@
-﻿//using MediatR;
+﻿using Domain.Results;
+using MediatR;
 
-//namespace Application.Commands.Books.DeleteBook
-//{
-//    public class DeleteBookCommand : IRequest<bool>
-//    {
-//        public int Id { get; set; }
+namespace Application.Commands.Books.DeleteBook
+{
+    public class DeleteBookCommand : IRequest<OperationResult<bool>>
+    {
+        public Guid BookId { get; }
 
-//        public DeleteBookCommand(int id)
-//        {
-//            Id = id;
-//        }
-//    }
-//}
+        public DeleteBookCommand(Guid bookId)
+        {
+            BookId = bookId;
+        }
+    }
+}
