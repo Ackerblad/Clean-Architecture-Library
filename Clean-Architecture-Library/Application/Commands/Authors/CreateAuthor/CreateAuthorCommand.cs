@@ -1,17 +1,16 @@
-﻿//using Domain.Entities;
-//using MediatR;
+﻿using Application.DTOs.AuthorDtos;
+using Domain.Results;
+using MediatR;
 
-//namespace Application.Commands.Authors.CreateAuthor
-//{
-//    public class CreateAuthorCommand : IRequest<Author>
-//    {
-//        public string FirstName { get; set; }
-//        public string LastName { get; set; }
+namespace Application.Commands.Authors.CreateAuthor
+{
+    public class CreateAuthorCommand : IRequest<OperationResult<AuthorDto>>
+    {
+        public CreateAuthorDto NewAuthor { get; set; }
 
-//        public CreateAuthorCommand(string firstName, string lastName)
-//        {
-//            FirstName = firstName;
-//            LastName = lastName;
-//        }
-//    }
-//}
+        public CreateAuthorCommand(CreateAuthorDto newAuthor)
+        {
+            NewAuthor = newAuthor;
+        }
+    }
+}

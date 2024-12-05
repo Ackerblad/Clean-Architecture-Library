@@ -34,13 +34,11 @@ namespace Test.BookTests.CommandTests
             var bookId = Guid.NewGuid();
             var command = new DeleteBookCommand(bookId);
 
-            _mockQueryRepository
-                .Setup(repo => repo.GetByIdAsync(bookId))
-                .ReturnsAsync(new Book { Id = bookId });
+            _mockQueryRepository.Setup(repo => repo.GetByIdAsync(bookId))
+                                .ReturnsAsync(new Book { Id = bookId });
 
-            _mockCommandRepository
-                .Setup(repo => repo.DeleteAsync(bookId))
-                .ReturnsAsync(true);
+            _mockCommandRepository.Setup(repo => repo.DeleteAsync(bookId))
+                                  .ReturnsAsync(true);
 
             //Act
             var result = await _handler.Handle(command, CancellationToken.None);
