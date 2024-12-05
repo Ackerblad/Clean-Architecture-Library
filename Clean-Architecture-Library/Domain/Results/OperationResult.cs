@@ -15,12 +15,12 @@
             ErrorMessage = errorMessage;
         }
 
-        public static OperationResult<T> Successful(T data, string message = "Operation Successful")
+        public static OperationResult<T> Successful(T data, string message)
         {
             return new OperationResult<T>(true, data, message, null);
         }
 
-        public static OperationResult<T> Failure(string errorMessage, string message = "Operation Failed")
+        public static OperationResult<T> Failure(string errorMessage, string message)
         {
             return new OperationResult<T>(false, default, message, errorMessage);
         }
