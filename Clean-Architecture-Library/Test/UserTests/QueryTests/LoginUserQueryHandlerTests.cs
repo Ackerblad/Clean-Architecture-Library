@@ -1,63 +1,81 @@
-﻿//using Application.Queries.Users.LoginUser.Helpers;
-//using Application.Queries.Users.LoginUser;
-//using Infrastructure;
-//using Microsoft.Extensions.Configuration;
-//using Domain.Entities;
+﻿using Application.Queries.Users.LoginUser;
+using Domain.Entities;
+using Application.Interfaces.RepositoryInterfaces;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Application.Interfaces.HelperInterfaces;
 
-//namespace Test.UserTests.QueryTests
-//{
-//    public class LoginUserQueryHandlerTests
-//    {
-//        private FakeDatabase _fakeDatabase;
-//        private TokenHelper _tokenHelper;
-//        private LoginUserQueryHandler _handler;
+namespace Test.UserTests.QueryTests
+{
+    public class LoginUserQueryHandlerTests
+    {
+        private Mock<IQueryRepository<User>> _mockUserRepository;
+        private Mock<ITokenHelper> _mockTokenHelper;
+        private Mock<ILogger<LoginUserQueryHandler>> _mockLogger;
+        private LoginUserQueryHandler _handler;
 
-//        [SetUp]
-//        public void SetUp()
-//        {
-//            _fakeDatabase = new FakeDatabase
-//            {
-//                Users = new List<User>
-//                {
-//                    new User(1, "TestUser", "TestPassword"),
-//                }
-//            };
+        [SetUp]
+        public void SetUp()
+        {
+            _mockUserRepository = new Mock<IQueryRepository<User>>();
+            _mockTokenHelper = new Mock<ITokenHelper>();
+            _mockLogger = new Mock<ILogger<LoginUserQueryHandler>>();
 
-//            var configuration = new ConfigurationBuilder()
-//                .AddInMemoryCollection(new Dictionary<string, string>
-//                {
-//                    { "JwtSettings:SecretKey", "SuperSecureSecretTestKeyGreaterThan256" }
-//                })
-//                .Build();
+            _handler = new LoginUserQueryHandler(
+                _mockUserRepository.Object,
+                _mockTokenHelper.Object,
+                _mockLogger.Object
+                );
+        }
 
-//            _tokenHelper = new TokenHelper(configuration);
-//            _handler = new LoginUserQueryHandler(_fakeDatabase, _tokenHelper);
-//        }
+        [Test]
+        public async Task Handle_ValidCredentials_GeneratesToken()
+        {
+            //Arrange
+            var userName = "validUser";
+            var password = "validPassword";
+            var user = new User { Id = Guid.NewGuid(), Username = userName, Password = password };
+            var token = "generatedToken";
+            var query = new LoginUserQuery(userName, password);
 
-//        [Test]
-//        public async Task Handle_ValidCredentials_GeneratesToken()
-//        {
-//            //Arrange
-//            var query = new LoginUserQuery("TestUser", "TestPassword");
+            _mockUserRepository.Setup(repo => repo.GetAllAsync())
+                               .ReturnsAsync(new List<User> { user });
 
-//            //Act
-//            var result = await _handler.Handle(query, CancellationToken.None);
+            _mockTokenHelper.Setup(helper => helper.GenerateJwtToken(user))
+                            .Returns(token);
 
-//            //Assert
-//            Assert.That(result, Is.Not.Null.Or.Empty);
-//        }
 
-//        [Test]
-//        public async Task Handle_InvalidCredentials_ThrowsUnauthorizedAccessException()
-//        {
-//            //Arrange
-//            var query = new LoginUserQuery("InvalidUser", "InvalidPassword");
+            //Act
+            var result = await _handler.Handle(query, CancellationToken.None);
 
-//            //Act
-//            Task action() => _handler.Handle(query, CancellationToken.None);
+            //Assert
+            Assert.IsTrue(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Login successful."));
+            Assert.That(result.Data, Is.EqualTo(token));
+            _mockUserRepository.Verify(repo => repo.GetAllAsync(), Times.Once);
+            _mockTokenHelper.Verify(helper => helper.GenerateJwtToken(user), Times.Once);
+        }
 
-//            //Assert
-//            Assert.ThrowsAsync<UnauthorizedAccessException>(action);
-//        }
-//    }
-//}
+        [Test]
+        public async Task Handle_InvalidCredentials_ReturnsFailureOperationResult()
+        {
+            //Arrange
+            var userName = "invalidUser";
+            var password = "invalidPassword";
+            var query = new LoginUserQuery(userName, password);
+
+            _mockUserRepository.Setup(repo => repo.GetAllAsync())
+                               .ReturnsAsync(new List<User>());
+
+            //Act
+            var result = await _handler.Handle(query, CancellationToken.None);
+
+            //Assert
+            Assert.IsFalse(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Unauthorized"));
+            Assert.That(result.ErrorMessage, Is.EqualTo("Invalid username or password."));
+            _mockUserRepository.Verify(repo => repo.GetAllAsync(), Times.Once);
+            _mockTokenHelper.Verify(helper => helper.GenerateJwtToken(It.IsAny<User>()), Times.Never);
+        }
+    }
+}

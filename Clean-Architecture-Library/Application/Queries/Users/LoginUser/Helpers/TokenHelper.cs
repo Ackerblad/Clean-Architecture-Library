@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.Interfaces.HelperInterfaces;
+using Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -7,7 +8,7 @@ using System.Text;
 
 namespace Application.Queries.Users.LoginUser.Helpers
 {
-    public class TokenHelper
+    public class TokenHelper : ITokenHelper
     {
         private readonly IConfiguration _configuration;
 

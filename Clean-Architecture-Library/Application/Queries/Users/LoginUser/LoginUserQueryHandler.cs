@@ -1,32 +1,43 @@
-﻿//using Application.Queries.Users.LoginUser.Helpers;
-//using Infrastructure;
-//using MediatR;
+﻿using Application.Interfaces.HelperInterfaces;
+using Application.Interfaces.RepositoryInterfaces;
+using Application.Queries.Users.LoginUser.Helpers;
+using Domain.Entities;
+using Domain.Results;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
-//namespace Application.Queries.Users.LoginUser
-//{
-//    public class LoginUserQueryHandler : IRequestHandler<LoginUserQuery, string>
-//    {
-//        private readonly FakeDatabase _fakeDatabase;
-//        private readonly TokenHelper _tokenHelper;
+namespace Application.Queries.Users.LoginUser
+{
+    public class LoginUserQueryHandler : IRequestHandler<LoginUserQuery, OperationResult<string>>
+    {
+        private readonly IQueryRepository<User> _userRepository;
+        private readonly ITokenHelper _tokenHelper;
+        private readonly ILogger<LoginUserQueryHandler> _logger;
 
-//        public LoginUserQueryHandler(FakeDatabase fakeDatabase, TokenHelper tokenHelper)
-//        {
-//            _fakeDatabase = fakeDatabase;
-//            _tokenHelper = tokenHelper;
-//        }
+        public LoginUserQueryHandler(IQueryRepository<User> userRepository, ITokenHelper tokenHelper, ILogger<LoginUserQueryHandler> logger)
+        {
+            _userRepository = userRepository;
+            _tokenHelper = tokenHelper;
+            _logger = logger;
+        }
 
-//        public Task<string> Handle(LoginUserQuery request, CancellationToken cancellationToken)
-//        {
-//            var user = _fakeDatabase.Users.FirstOrDefault(u => u.UserName == request.UserName && u.Password == request.Password);
+        public async Task<OperationResult<string>> Handle(LoginUserQuery request, CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Handling LoginUserQuery for username: {Username}", request.UserName);
 
-//            if (user == null)
-//            {
-//                throw new UnauthorizedAccessException("Invalid username or password.");
-//            }
+            var users = await _userRepository.GetAllAsync();
+            var user = users.FirstOrDefault(u => u.Username == request.UserName && u.Password == request.Password);
 
-//            string token = _tokenHelper.GenerateJwtToken(user);
+            if (user == null)
+            {
+                _logger.LogWarning("Invalid username or password for username: {Username}", request.UserName);
+                return OperationResult<string>.Failure("Invalid username or password.", "Unauthorized");
+            }
 
-//            return Task.FromResult(token);
-//        }
-//    }
-//}
+            var token = _tokenHelper.GenerateJwtToken(user);
+
+            _logger.LogInformation("User {Username} successfully logged in.", request.UserName);
+            return OperationResult<string>.Successful(token, "Login successful.");
+        }
+    }
+}
