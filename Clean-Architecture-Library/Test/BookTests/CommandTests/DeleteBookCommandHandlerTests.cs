@@ -24,7 +24,7 @@ namespace Test.BookTests.CommandTests
                 _mockCommandRepository.Object,
                 _mockQueryRepository.Object,
                 _mockLogger.Object
-            );
+                );
         }
 
         [Test]
