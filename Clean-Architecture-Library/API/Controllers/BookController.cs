@@ -1,104 +1,139 @@
-﻿//using Application.Commands.Books.CreateBook;
-//using Application.Commands.Books.DeleteBook;
-//using Application.Commands.Books.UpdateBook;
-//using Application.Queries.Books.GetAllBooks;
-//using Application.Queries.Books.GetBookById;
-//using MediatR;
-//using Microsoft.AspNetCore.Authorization;
-//using Microsoft.AspNetCore.Mvc;
+﻿using Application.Commands.Books.CreateBook;
+using Application.Commands.Books.DeleteBook;
+using Application.Commands.Books.UpdateBook;
+using Application.Queries.Books.GetAllBooks;
+using Application.Queries.Books.GetBookById;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-//namespace API.Controllers
-//{
-//    [Route("api/[controller]")]
-//    [ApiController]
-//    public class BookController : ControllerBase
-//    {
-//        private readonly IMediator _mediator;
+namespace API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class BookController : ControllerBase
+    {
+        private readonly IMediator _mediator;
+        private readonly ILogger<BookController> _logger;
 
-//        public BookController(IMediator mediator)
-//        {
-//            _mediator = mediator;
-//        }
+        public BookController(IMediator mediator, ILogger<BookController> logger)
+        {
+            _mediator = mediator;
+            _logger = logger;
+        }
 
-//        [Authorize]
-//        [HttpGet]
-//        public async Task<IActionResult> GetAllBooks()
-//        {
-//            try
-//            {
-//                var books = await _mediator.Send(new GetAllBooksQuery());
-//                return Ok(books);
-//            }
-//            catch (Exception ex)
-//            {
-//                return BadRequest(ex.Message);
-//            }
-//        }
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetAllBooks()
+        {
+            try
+            {
+                var result = await _mediator.Send(new GetAllBooksQuery());
 
-//        [Authorize]
-//        [HttpGet("{id}")]
-//        public async Task<IActionResult> GetBookById(int id)
-//        {
-//            try
-//            {
-//                var book = await _mediator.Send(new GetBookByIdQuery(id));
-//                return Ok(book);
-//            }
-//            catch (Exception ex)
-//            {
-//                return BadRequest(ex.Message);
-//            }
-//        }
+                _logger.LogInformation("Books retrieved successfully.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred while retrieving books.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
 
-//        [Authorize]
-//        [HttpPost]
-//        public async Task<IActionResult> CreateBook([FromBody] CreateBookCommand command)
-//        {
-//            try
-//            {
-//                var createdBook = await _mediator.Send(command);
-//                return Ok(createdBook);
-//            }
-//            catch (Exception ex)
-//            {
-//                return BadRequest(ex.Message);
-//            }
-            
-//        }
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetBookById(Guid id)
+        {
+            try
+            {
+                var result = await _mediator.Send(new GetBookByIdQuery(id));
 
-//        [Authorize]
-//        [HttpPut("{id}")]
-//        public async Task<IActionResult> UpdateBook(int id, [FromBody] UpdateBookCommand command)
-//        {
-//            try
-//            {
-//                if (id != command.Id)
-//                {
-//                    return BadRequest("ID in the URL does not match the ID in the body.");
-//                }
+                if (!result.IsSuccessful)
+                {
+                    _logger.LogWarning("Failed to retrieve book with ID {Id}: {Message}", id, result.Message);
+                    return BadRequest(result);
+                }
 
-//                var updatedBook = await _mediator.Send(command);
-//                return Ok(updatedBook);
-//            }
-//            catch (Exception ex)
-//            {
-//                return BadRequest(ex.Message); 
-//            }
-//        }
+                _logger.LogInformation("Book with ID {Id} retrieved successfully.", id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred while retrieving book with ID {Id}.", id);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
 
-//        [Authorize]
-//        [HttpDelete("{id}")]
-//        public async Task<IActionResult> DeleteBook(int id)
-//        {
-//            try
-//            {
-//                await _mediator.Send(new DeleteBookCommand(id));
-//                return Ok();
-//            }
-//            catch (Exception ex)
-//            {
-//                return BadRequest(ex.Message); 
-//            }
-//        }
-//    }
-//}
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> CreateBook([FromBody] CreateBookCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSuccessful)
+                {
+                    _logger.LogWarning("Failed to create book: {Message}", result.Message);
+                    return BadRequest(result);
+                }
+
+                _logger.LogInformation("Book created successfully.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred while creating a book.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
+
+        [Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateBook(Guid id, [FromBody] UpdateBookCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSuccessful)
+                {
+                    _logger.LogWarning("Failed to update book with ID {id}: {Message}", id, result.Message);
+                    return BadRequest(result);
+                }
+
+                _logger.LogInformation("Book with ID {id} updated successfully.", id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred while updating a book.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
+
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBook(Guid id)
+        {
+            try
+            {
+                var result = await _mediator.Send(new DeleteBookCommand(id));
+
+                if (!result.IsSuccessful)
+                {
+                    _logger.LogWarning("Failed to delete book with ID {Id}: {Message}", id, result.Message);
+                    return BadRequest(result);
+                }
+
+                _logger.LogInformation("Book with ID {Id} deleted successfully.", id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred while deleting book with ID {Id}.", id);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
+    }
+}
