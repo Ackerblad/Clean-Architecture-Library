@@ -1,17 +1,16 @@
-﻿//using Domain.Entities;
-//using MediatR;
+﻿using Application.DTOs.UserDtos;
+using Domain.Results;
+using MediatR;
 
-//namespace Application.Commands.Users.CreateUser
-//{
-//    public class CreateUserCommand : IRequest<User>
-//    {
-//        public string UserName { get; set; }
-//        public string Password { get; set; }
+namespace Application.Commands.Users.CreateUser
+{
+    public class CreateUserCommand : IRequest<OperationResult<UserDto>>
+    {
+        public CreateUserDto NewUser { get; set; }
 
-//        public CreateUserCommand(string userName, string password)
-//        {
-//            UserName = userName;
-//            Password = password;
-//        }
-//    }
-//}
+        public CreateUserCommand(CreateUserDto newUser)
+        {
+            NewUser = newUser;
+        }
+    }
+}

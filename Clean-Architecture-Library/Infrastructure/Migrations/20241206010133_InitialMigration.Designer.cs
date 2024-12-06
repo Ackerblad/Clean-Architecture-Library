@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(CleanArchitectureLibraryDb))]
-    [Migration("20241204180807_InitialMigration")]
+    [Migration("20241206010133_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -78,7 +78,7 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserName")
+                    b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
