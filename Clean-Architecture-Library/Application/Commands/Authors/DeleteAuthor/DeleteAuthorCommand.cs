@@ -1,14 +1,15 @@
-﻿//using MediatR;
+﻿using Domain.Results;
+using MediatR;
 
-//namespace Application.Commands.Authors.DeleteAuthor
-//{
-//    public class DeleteAuthorCommand : IRequest<bool>
-//    {
-//        public int Id { get; set; }
+namespace Application.Commands.Authors.DeleteAuthor
+{
+    public class DeleteAuthorCommand : IRequest<OperationResult<bool>>
+    {
+        public Guid AuthorId { get; set; }
 
-//        public DeleteAuthorCommand(int id)
-//        {
-//            Id = id;
-//        }
-//    }
-//}
+        public DeleteAuthorCommand(Guid authorId)
+        {
+            AuthorId = authorId;
+        }
+    }
+}

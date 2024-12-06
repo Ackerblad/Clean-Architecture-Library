@@ -1,66 +1,97 @@
-﻿//using Application.Commands.Authors.DeleteAuthor;
-//using Infrastructure;
-//using System;
+﻿using Application.Commands.Authors.DeleteAuthor;
+using Application.Interfaces.RepositoryInterfaces;
+using Domain.Entities;
+using Microsoft.Extensions.Logging;
+using Moq;
 
-//namespace Test.AuthorTests.CommandTests
-//{
-//    public class DeleteAuthorCommandHandlerTests
-//    {
-//        private FakeDatabase _fakeDatabase;
-//        private DeleteAuthorCommandHandler _handler;
+namespace Test.AuthorTests.CommandTests
+{
+    public class DeleteAuthorCommandHandlerTests
+    {
+        private Mock<ICommandRepository<Author>> _mockCommandRepository;
+        private Mock<IQueryRepository<Author>> _mockQueryRepository;
+        private Mock<IQueryRepository<Book>> _mockBookRepository;
+        private Mock<ILogger<DeleteAuthorCommandHandler>> _mockLogger;
+        private DeleteAuthorCommandHandler _handler;
 
-//        [SetUp]
-//        public void Setup()
-//        {
-//            _fakeDatabase = new FakeDatabase();
-//            _handler = new DeleteAuthorCommandHandler(_fakeDatabase);
-//        }
+        [SetUp]
+        public void Setup()
+        {
+            _mockCommandRepository = new Mock<ICommandRepository<Author>>();
+            _mockQueryRepository = new Mock<IQueryRepository<Author>>();
+            _mockBookRepository = new Mock<IQueryRepository<Book>>();
+            _mockLogger = new Mock<ILogger<DeleteAuthorCommandHandler>>();
 
-//        [Test]
-//        public async Task Handle_AuthorExistsAndNoBooksAssociated_DeletesAuthorFromDatabase()
-//        {
-//            //Arrange
-//            var authorToDelete = _fakeDatabase.Authors.First(a => !_fakeDatabase.Books.Any(b => b.AuthorId == a.Id));
-//            var initialAuthors = _fakeDatabase.Authors.Count;
-//            var command = new DeleteAuthorCommand(authorToDelete.Id);
+            _handler = new DeleteAuthorCommandHandler(
+                _mockCommandRepository.Object,
+                _mockQueryRepository.Object,
+                _mockBookRepository.Object,
+                _mockLogger.Object
+                );
+        }
 
-//            //Act
-//            var result = await _handler.Handle(command, CancellationToken.None);
+        [Test]
+        public async Task Handle_AuthorExists_ReturnsSuccessOperationResult()
+        {
+            //Arrange
+            var authorId = Guid.NewGuid();
+            var command = new DeleteAuthorCommand(authorId);
 
-//            //Assert
-//            Assert.That(result, Is.True);
-//            Assert.That(_fakeDatabase.Authors.Count, Is.EqualTo(initialAuthors - 1));
-//        }
+            _mockQueryRepository.Setup(repo => repo.GetByIdAsync(authorId))
+                                .ReturnsAsync(new Author { Id = authorId });
 
-//        [Test]
-//        public void Handle_AuthorDoesNotExist_ThrowsKeyNotFoundException()
-//        {
-//            //Arrange
-//            var initialAuthors = _fakeDatabase.Authors.Count;
-//            var command = new DeleteAuthorCommand(99);
+            _mockBookRepository.Setup(repo => repo.GetAllAsync())
+                                     .ReturnsAsync(new List<Book>());
 
-//            //Act
-//            Task action() => _handler.Handle(command, CancellationToken.None);
+            _mockCommandRepository.Setup(repo => repo.DeleteAsync(authorId))
+                                   .ReturnsAsync(true);
 
-//            //Assert
-//            Assert.ThrowsAsync<KeyNotFoundException>(action);
-//            Assert.That(_fakeDatabase.Authors.Count, Is.EqualTo(initialAuthors));
-//        }
+            //Act
+            var result = await _handler.Handle(command, CancellationToken.None);
 
-//        [Test]
-//        public void Handle_AuthorAssociatedWithBooks_ThrowsInvalidOperationException()
-//        {
-//            //Arrange
-//            var authorToDelete = _fakeDatabase.Authors.First(a => _fakeDatabase.Books.Any(b => b.AuthorId == a.Id));
-//            var initialAuthors = _fakeDatabase.Authors.Count;
-//            var command = new DeleteAuthorCommand(authorToDelete.Id);
+            //Assert
+            Assert.IsTrue(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Author deleted successfully."));
+            _mockCommandRepository.Verify(repo => repo.DeleteAsync(authorId), Times.Once);
+        }
 
-//            //Act
-//            Task action() => _handler.Handle(command, CancellationToken.None);
+        [Test]
+        public async Task Handle_AuthorDoesNotExist_ReturnsFailureOperationResult()
+        {
+            //Arrange
+            var authorId = Guid.NewGuid();
+            var command = new DeleteAuthorCommand(authorId);
 
-//            //Assert
-//            Assert.ThrowsAsync<InvalidOperationException>(action);
-//            Assert.That(_fakeDatabase.Authors.Count, Is.EqualTo(initialAuthors));
-//        }
-//    }
-//}
+            //Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            //Assert
+            Assert.IsFalse(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Error: Author not found."));
+            _mockCommandRepository.Verify(repo => repo.DeleteAsync(It.IsAny<Guid>()), Times.Never);
+        }
+
+        [Test]
+        public async Task Handle_AuthorAssociatedWithBooks_ReturnsFailureOperationResult()
+        {
+            //Arrange
+            var authorId = Guid.NewGuid();
+            var associatedBooks = new List<Book> { new Book { AuthorId = authorId } };
+            var command = new DeleteAuthorCommand(authorId);
+
+            _mockQueryRepository.Setup(repo => repo.GetByIdAsync(authorId))
+                                .ReturnsAsync(new Author { Id = authorId });
+
+            _mockBookRepository.Setup(repo => repo.GetAllAsync())
+                                     .ReturnsAsync(associatedBooks);
+
+            //Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            //Assert
+            Assert.IsFalse(result.IsSuccessful);
+            Assert.That(result.Message, Is.EqualTo("Error: Author has associated books."));
+            _mockCommandRepository.Verify(repo => repo.DeleteAsync(It.IsAny<Guid>()), Times.Never);
+        }
+    }
+}

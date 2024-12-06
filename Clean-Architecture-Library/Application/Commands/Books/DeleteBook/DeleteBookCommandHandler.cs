@@ -12,7 +12,8 @@ namespace Application.Commands.Books.DeleteBook
         private readonly IQueryRepository<Book> _queryRepository;
         private readonly ILogger<DeleteBookCommandHandler> _logger;
 
-        public DeleteBookCommandHandler(ICommandRepository<Book> commandRepository, IQueryRepository<Book> queryRepository, ILogger<DeleteBookCommandHandler> logger)
+        public DeleteBookCommandHandler(ICommandRepository<Book> commandRepository, IQueryRepository<Book> queryRepository,
+                                                           ILogger<DeleteBookCommandHandler> logger)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
