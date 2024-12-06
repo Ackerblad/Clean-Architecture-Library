@@ -24,6 +24,7 @@ namespace API.Controllers
 
         [Authorize]
         [HttpGet]
+        [ResponseCache(CacheProfileName = "DefaultCache")]
         public async Task<IActionResult> GetAllAuthors()
         {
             try
