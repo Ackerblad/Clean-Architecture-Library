@@ -1,21 +1,32 @@
-﻿//using Domain.Entities;
-//using Infrastructure;
-//using MediatR;
+﻿using Application.DTOs.BookDtos;
+using Application.Interfaces.RepositoryInterfaces;
+using AutoMapper;
+using Domain.Entities;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
-//namespace Application.Queries.Books.GetAllBooks
-//{
-//    public class GetAllBooksQueryHandler : IRequestHandler<GetAllBooksQuery, List<Book>>
-//    {
-//        private readonly FakeDatabase _fakeDatabase;
+namespace Application.Queries.Books.GetAllBooks
+{
+    public class GetAllBooksQueryHandler : IRequestHandler<GetAllBooksQuery, IEnumerable<BookDto>>
+    {
+        private readonly IQueryRepository<Book> _bookRepository;
+        private readonly IMapper _mapper;
+        private readonly ILogger<GetAllBooksQueryHandler> _logger;
 
-//        public GetAllBooksQueryHandler(FakeDatabase fakeDatabase)
-//        {
-//            _fakeDatabase = fakeDatabase;
-//        }
+        public GetAllBooksQueryHandler(IQueryRepository<Book> bookRepository, IMapper mapper, ILogger<GetAllBooksQueryHandler> logger)
+        {
+            _bookRepository = bookRepository;
+            _mapper = mapper;
+            _logger = logger;
+        }
 
-//        public Task<List<Book>> Handle(GetAllBooksQuery request, CancellationToken cancellationToken)
-//        {
-//            return Task.FromResult(_fakeDatabase.Books);
-//        }
-//    }
-//}
+        public async Task<IEnumerable<BookDto>> Handle(GetAllBooksQuery request, CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Handling GetAllBooksQuery");
+            var books = await _bookRepository.GetAllAsync();
+
+            _logger.LogInformation("{Count} books retrieved", books.Count());
+            return _mapper.Map<IEnumerable<BookDto>>(books);
+        }
+    }
+}
