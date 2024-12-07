@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.UserTests.QueryTests
+namespace Test.UnitTests.UserTests.QueryTests
 {
     public class GetAllUsersQueryHandlerTests
     {
@@ -39,10 +39,10 @@ namespace Test.UserTests.QueryTests
             //Arrange
             var users = new List<User> { new User(), new User() };
             var userDtos = new List<UserDto> { new UserDto(), new UserDto() };
-            object cachedData = null;
+            object cachedData = null!;
             var query = new GetAllUsersQuery();
 
-            _mockMemoryCache.Setup(cache => cache.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
+            _mockMemoryCache.Setup(cache => cache.TryGetValue(It.IsAny<object>(), out cachedData!))
                            .Returns(false);
 
             _mockMemoryCache.Setup(cache => cache.CreateEntry(It.IsAny<object>()))
@@ -73,9 +73,8 @@ namespace Test.UserTests.QueryTests
             object cachedData = users;
             var query = new GetAllUsersQuery();
 
-            _mockMemoryCache
-                .Setup(cache => cache.TryGetValue(It.IsAny<object>(), out cachedData))
-                .Returns(true);
+            _mockMemoryCache.Setup(cache => cache.TryGetValue(It.IsAny<object>(), out cachedData!))
+                            .Returns(true);
 
             _mockMapper.Setup(mapper => mapper.Map<IEnumerable<UserDto>>(users))
                        .Returns(userDtos);
@@ -87,7 +86,7 @@ namespace Test.UserTests.QueryTests
             Assert.That(result, Is.EqualTo(userDtos));
             _mockUserRepository.Verify(repo => repo.GetAllAsync(), Times.Never);
             _mockMapper.Verify(mapper => mapper.Map<IEnumerable<UserDto>>(users), Times.Once);
-            _mockMemoryCache.Verify(cache => cache.TryGetValue(It.IsAny<object>(), out cachedData), Times.Once);
+            _mockMemoryCache.Verify(cache => cache.TryGetValue(It.IsAny<object>(), out cachedData!), Times.Once);
         }
     }
 }

@@ -8,7 +8,7 @@ using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.AuthorTests.CommandTests
+namespace Test.UnitTests.AuthorTests.CommandTests
 {
     public class UpdateAuthorCommandHandlerTests
     {
@@ -45,7 +45,7 @@ namespace Test.AuthorTests.CommandTests
             var updateAuthorDto = new UpdateAuthorDto { FirstName = "John", LastName = "Doe" };
             var command = new UpdateAuthorCommand(authorId, updateAuthorDto);
 
-            var existingAuthor = new Author { Id = authorId};
+            var existingAuthor = new Author { Id = authorId };
             var updatedAuthorDto = new AuthorDto { Id = authorId, FirstName = "John", LastName = "Doe" };
 
             _mockValidator.Setup(validator => validator.ValidateAsync(updateAuthorDto, It.IsAny<CancellationToken>()))

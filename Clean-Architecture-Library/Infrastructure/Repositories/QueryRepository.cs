@@ -13,7 +13,7 @@ namespace Infrastructure.Repositories
             _db = db;
         }
 
-        public async Task<TEntity> GetByIdAsync(Guid id)
+        public async Task<TEntity?> GetByIdAsync(Guid id)
         {
             return await _db.Set<TEntity>().FindAsync(id);
         }

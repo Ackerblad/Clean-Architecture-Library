@@ -4,7 +4,7 @@ using Domain.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.BookTests.CommandTests
+namespace Test.UnitTests.BookTests.CommandTests
 {
     public class DeleteBookCommandHandlerTests
     {
