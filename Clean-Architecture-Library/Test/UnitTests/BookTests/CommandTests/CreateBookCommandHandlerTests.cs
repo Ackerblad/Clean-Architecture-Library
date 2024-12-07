@@ -8,7 +8,7 @@ using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.BookTests.CommandTests
+namespace Test.UnitTests.BookTests.CommandTests
 {
     public class CreateBookCommandHandlerTests
     {
@@ -63,7 +63,7 @@ namespace Test.BookTests.CommandTests
 
             //Assert
             Assert.IsTrue(result.IsSuccessful);
-            Assert.That(result.Message, Is.EqualTo("Book created successfully"));
+            Assert.That(result.Message, Is.EqualTo("Book created successfully."));
             _mockBookRepository.Verify(repo => repo.CreateAsync(bookEntity), Times.Once);
         }
 

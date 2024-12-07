@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Application.Interfaces.HelperInterfaces;
 
-namespace Test.UserTests.QueryTests
+namespace Test.UnitTests.UserTests.QueryTests
 {
     public class LoginUserQueryHandlerTests
     {

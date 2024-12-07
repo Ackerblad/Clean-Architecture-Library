@@ -6,7 +6,7 @@ using Domain.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.AuthorTests.QueryTests
+namespace Test.UnitTests.AuthorTests.QueryTests
 {
     public class GetAuthorByIdQueryHandlerTests
     {

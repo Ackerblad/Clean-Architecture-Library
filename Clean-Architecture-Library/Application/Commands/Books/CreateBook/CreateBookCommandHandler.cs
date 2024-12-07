@@ -52,7 +52,7 @@ namespace Application.Commands.Books.CreateBook
             _logger.LogInformation("Book created successfully: {BookId}, Title: {Title}", newBook.Id, newBook.Title);
 
             var createdBookDto = _mapper.Map<BookDto>(newBook);
-            return OperationResult<BookDto>.Successful(createdBookDto, "Book created successfully");
+            return OperationResult<BookDto>.Successful(createdBookDto, "Book created successfully.");
         }
     }
 }

@@ -28,7 +28,7 @@ namespace Application.Queries.Users.GetAllUsers
         {
             _logger.LogInformation("Handling GetAllUsersQuery");
 
-            if (!_memoryCache.TryGetValue(cacheKey, out IEnumerable<User> allUsers))
+            if (!_memoryCache.TryGetValue(cacheKey, out IEnumerable<User>? allUsers))
             {
                 _logger.LogInformation("Cache miss. Retrieving users from database.");
 

@@ -8,7 +8,7 @@ using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.BookTests.CommandTests
+namespace Test.UnitTests.BookTests.CommandTests
 {
     public class UpdateBookCommandHandlerTests
     {

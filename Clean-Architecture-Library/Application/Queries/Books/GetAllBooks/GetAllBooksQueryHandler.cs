@@ -28,7 +28,7 @@ namespace Application.Queries.Books.GetAllBooks
         {
             _logger.LogInformation("Handling GetAllBooksQuery");
 
-            if (!_memoryCache.TryGetValue(cacheKey, out IEnumerable<Book> allBooks))
+            if (!_memoryCache.TryGetValue(cacheKey, out IEnumerable<Book>? allBooks))
             {
                 _logger.LogInformation("Cache miss. Retrieving books from database.");
 

@@ -8,7 +8,7 @@ using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.UserTests.CommandTests
+namespace Test.UnitTests.UserTests.CommandTests
 {
     public class CreateUserCommandHandlerTests
     {
@@ -71,8 +71,8 @@ namespace Test.UserTests.CommandTests
         public async Task Handle_UserIsNotUnique_ReturnsFailureOperationResult()
         {
             //Arrange
-            var newUserDto = new CreateUserDto { Username = "duplicateUser"};
-            var existingUsers = new List<User>{new User { Username = "duplicateUser" }};
+            var newUserDto = new CreateUserDto { Username = "duplicateUser" };
+            var existingUsers = new List<User> { new User { Username = "duplicateUser" } };
             var command = new CreateUserCommand(newUserDto);
 
             _mockValidator.Setup(validator => validator.ValidateAsync(newUserDto, It.IsAny<CancellationToken>()))
@@ -94,7 +94,7 @@ namespace Test.UserTests.CommandTests
         public async Task Handle_InvalidDto_ReturnsFailureOperationResult()
         {
             //Arrange
-            var newUserDto = new CreateUserDto { Username = ""};
+            var newUserDto = new CreateUserDto { Username = "" };
             var command = new CreateUserCommand(newUserDto);
             var validationErrors = new[] { new ValidationFailure("Username", "Username is required.") };
 

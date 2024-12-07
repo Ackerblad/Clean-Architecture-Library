@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.AuthorTests.QueryTests
+namespace Test.UnitTests.AuthorTests.QueryTests
 {
     public class GetAllAuthorsQueryHandlerTests
     {
@@ -39,10 +39,10 @@ namespace Test.AuthorTests.QueryTests
             //Arrange
             var authors = new List<Author> { new Author(), new Author() };
             var authorDtos = new List<AuthorDto> { new AuthorDto(), new AuthorDto() };
-            object cachedData = null;
+            object cachedData = null!;
             var query = new GetAllAuthorsQuery();
 
-            _mockMemoryCache.Setup(cache => cache.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
+            _mockMemoryCache.Setup(cache => cache.TryGetValue(It.IsAny<object>(), out cachedData!))
                            .Returns(false);
 
             _mockMemoryCache.Setup(cache => cache.CreateEntry(It.IsAny<object>()))
@@ -73,9 +73,8 @@ namespace Test.AuthorTests.QueryTests
             object cachedData = authors;
             var query = new GetAllAuthorsQuery();
 
-            _mockMemoryCache
-                .Setup(cache => cache.TryGetValue(It.IsAny<object>(), out cachedData))
-                .Returns(true);
+            _mockMemoryCache.Setup(cache => cache.TryGetValue(It.IsAny<object>(), out cachedData!))
+                            .Returns(true);
 
             _mockMapper.Setup(mapper => mapper.Map<IEnumerable<AuthorDto>>(authors))
                        .Returns(authorDtos);
@@ -87,7 +86,7 @@ namespace Test.AuthorTests.QueryTests
             Assert.That(result, Is.EqualTo(authorDtos));
             _mockAuthorRepository.Verify(repo => repo.GetAllAsync(), Times.Never);
             _mockMapper.Verify(mapper => mapper.Map<IEnumerable<AuthorDto>>(authors), Times.Once);
-            _mockMemoryCache.Verify(cache => cache.TryGetValue(It.IsAny<object>(), out cachedData), Times.Once);
+            _mockMemoryCache.Verify(cache => cache.TryGetValue(It.IsAny<object>(), out cachedData!), Times.Once);
         }
     }
 }

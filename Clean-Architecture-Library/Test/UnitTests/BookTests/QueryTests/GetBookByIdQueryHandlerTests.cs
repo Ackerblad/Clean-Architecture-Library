@@ -6,7 +6,7 @@ using Domain.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.BookTests.QueryTests
+namespace Test.UnitTests.BookTests.QueryTests
 {
     public class GetBookByIdQueryHandlerTests
     {

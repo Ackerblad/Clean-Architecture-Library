@@ -28,7 +28,7 @@ namespace Application.Queries.Authors.GetAllAuthors
         {
             _logger.LogInformation("Handling GetAllAuthorsQuery");
 
-            if (!_memoryCache.TryGetValue(cacheKey, out IEnumerable<Author> allAuthors))
+            if (!_memoryCache.TryGetValue(cacheKey, out IEnumerable<Author>? allAuthors))
             {
                 _logger.LogInformation("Cache miss. Retrieving authors from database.");
 

@@ -8,7 +8,7 @@ using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.AuthorTests.CommandTests
+namespace Test.UnitTests.AuthorTests.CommandTests
 {
     public class CreateAuthorCommandHandlerTests
     {
