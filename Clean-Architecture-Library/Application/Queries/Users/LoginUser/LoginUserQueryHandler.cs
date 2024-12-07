@@ -1,6 +1,6 @@
-﻿using Application.Interfaces.HelperInterfaces;
+﻿using Application.Helpers;
+using Application.Interfaces.HelperInterfaces;
 using Application.Interfaces.RepositoryInterfaces;
-using Application.Queries.Users.LoginUser.Helpers;
 using Domain.Entities;
 using Domain.Results;
 using MediatR;
@@ -26,16 +26,21 @@ namespace Application.Queries.Users.LoginUser
             _logger.LogInformation("Handling LoginUserQuery for username: {Username}", request.Username);
 
             var users = await _userRepository.GetAllAsync();
-            var user = users.FirstOrDefault(u => u.Username == request.Username && u.Password == request.Password);
+            var matchingUser = users.FirstOrDefault(u => u.Username == request.Username);
 
-            if (user == null)
+            if (matchingUser == null)
             {
-                _logger.LogWarning("Invalid username or password for username: {Username}", request.Username);
+                _logger.LogWarning("Invalid username: {Username}", request.Username);
                 return OperationResult<string>.Failure("Invalid username or password.", "Unauthorized");
             }
 
-            var token = _tokenHelper.GenerateJwtToken(user);
+            if (!PasswordHelper.VerifyPassword(request.Password, matchingUser.Password))
+            {
+                _logger.LogWarning("Invalid password for username: {Username}", request.Username);
+                return OperationResult<string>.Failure("Invalid username or password.", "Unauthorized");
+            }
 
+            var token = _tokenHelper.GenerateJwtToken(matchingUser);
             _logger.LogInformation("User {Username} successfully logged in.", request.Username);
             return OperationResult<string>.Successful(token, "Login successful.");
         }

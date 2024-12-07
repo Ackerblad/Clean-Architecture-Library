@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.UserDtos;
+using Application.Helpers;
 using Application.Interfaces.RepositoryInterfaces;
 using AutoMapper;
 using Domain.Entities;
@@ -45,6 +46,9 @@ namespace Application.Commands.Users.CreateUser
                 _logger.LogWarning("User with username {Username} already exists.", request.NewUser.Username);
                 return OperationResult<UserDto>.Failure($"User with username {request.NewUser.Username} already exists.", "Error: Duplicate username.");
             }
+
+            var hashedPassword = PasswordHelper.HashPassword(request.NewUser.Password);
+            request.NewUser.Password = hashedPassword;
 
             var newUser = _mapper.Map<User>(request.NewUser);
             await _commandRepository.CreateAsync(newUser);

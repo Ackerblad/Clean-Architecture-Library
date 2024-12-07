@@ -4,6 +4,7 @@ using Application.Interfaces.RepositoryInterfaces;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Application.Interfaces.HelperInterfaces;
+using Application.Helpers;
 
 namespace Test.UnitTests.UserTests.QueryTests
 {
@@ -33,10 +34,11 @@ namespace Test.UnitTests.UserTests.QueryTests
         {
             //Arrange
             var userName = "validUser";
-            var password = "validPassword";
-            var user = new User { Id = Guid.NewGuid(), Username = userName, Password = password };
+            var plainPassword = "validPassword";
+            var hashedPassword = PasswordHelper.HashPassword(plainPassword);
+            var user = new User { Id = Guid.NewGuid(), Username = userName, Password = hashedPassword };
             var token = "generatedToken";
-            var query = new LoginUserQuery(userName, password);
+            var query = new LoginUserQuery(userName, plainPassword);
 
             _mockUserRepository.Setup(repo => repo.GetAllAsync())
                                .ReturnsAsync(new List<User> { user });
